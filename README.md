@@ -13,8 +13,11 @@ A helpful little menu bar app for fetching the current air quality index (AQI) f
 ### Environment Variables:
 This application expects a `.env` file at the project root. Your `.env` must contain the following keys:
 ```ini
+# Required
 AIRNOW_API_KEY = <your API key here>
 ZIP_CODE = <your zip code here>
+# Optional
+REFRESH_INTERVAL_SECONDS = <default is 3600>
 ```
 ***You will need to create this file if it does not exist.***
 
