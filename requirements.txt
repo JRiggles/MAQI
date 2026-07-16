@@ -1,0 +1,6 @@
+httpx
+py2app
+rumps
+# pinning setuptools at version 70.3.0 to avoid issues with py2app
+# see https://github.com/ronaldoussoren/py2app/issues/533
+setuptools==70.3.0
