@@ -4,7 +4,7 @@
 
 <img src="assets/appicon Exports/appicon-iOS-Dark-1024x1024@1x.png" alt="MAQI application icon - a stylized maki roll" width="256" height="256" />
 
-A helpful little menu bar app for fetching the current air quality index (AQI) for your ZIP code from [airnow.gov](https://airnow.gov).
+A helpful little menu bar app for fetching the current air quality index (AQI) for your ZIP code from [airnow.gov](https://www.airnow.gov).
 
 ### Changes:
 **v0.1.0** - Initial release
