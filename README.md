@@ -4,7 +4,7 @@
 
 <img src="assets/appicon Exports/appicon-iOS-Dark-1024x1024@1x.png" alt="MAQI application icon - a stylized maki roll" width="256" height="256" />
 
-A helpful little mac OS menu bar app for fetching the current air quality index (AQI) for your ZIP code from [airnow.gov](https://www.airnow.gov).
+A helpful little macOS menu bar app for fetching the current air quality index (AQI) for your ZIP code from [airnow.gov](https://www.airnow.gov).
 
 The displayed AQI is the highest value from among three tracked pollutants:
 - **PM2.5** &mdash; fine particulate matter of 2.5 µm or smaller
