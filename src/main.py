@@ -36,7 +36,8 @@ AIRNOW_API_URL = 'https://www.airnowapi.org/aq/observation/current/ziplatlong/'
 AIRNOW_API_KEY = getenv('AIRNOW_API_KEY', '')
 ZIP_CODE = getenv('ZIP_CODE', '')
 REFRESH_INTERVAL_SECONDS = int(getenv('REFRESH_INTERVAL_SECONDS', '3600'))
-ICON_DIR = Path(__file__).resolve().parent / 'assets'
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ICON_DIR = PROJECT_ROOT / 'assets'
 
 # TODO:
 # - add option to change API key, refresh intervale and ZIP code from menu
@@ -65,10 +66,24 @@ class AirQualityApp(rumps.App):
     def __init__(self) -> None:
         self.quality_item = rumps.MenuItem('Quality: ---')
         self.quality_item._menuitem.setEnabled_(False)
+        self.pm2_5_item = rumps.MenuItem('PM2.5: ---')
+        self.pm2_5_item._menuitem.setEnabled_(False)
+        self.pm10_item = rumps.MenuItem('PM10: ---')
+        self.pm10_item._menuitem.setEnabled_(False)
+        self.ozone_item = rumps.MenuItem('Ozone: ---')
+        self.ozone_item._menuitem.setEnabled_(False)
         super().__init__(
             'MAQI',
             icon=str(ICON_DIR / 'appicon exports/appicon.png'),
-            menu=[self.quality_item, rumps.separator, 'Refresh'],
+            menu=[
+                self.quality_item,
+                rumps.separator,
+                self.pm2_5_item,
+                self.pm10_item,
+                self.ozone_item,
+                rumps.separator,
+                'Refresh',
+            ],
             quit_button='Quit',
         )
         rumps.Timer(self.refresh, REFRESH_INTERVAL_SECONDS).start()
@@ -81,7 +96,7 @@ class AirQualityApp(rumps.App):
 
     async def _refresh_handler(self) -> None:
         try:
-            aqi, category = await self.get_air_quality()
+            [aqi, pm_2_5, pm_10, ozone], cat = await self.get_air_quality()
             self.icon = str(ICON_DIR / 'appicon exports/appicon.png')
             self.title = '---'
         except ValueError as e:
@@ -109,10 +124,13 @@ class AirQualityApp(rumps.App):
         else:
             self.icon = update_aqi_icon(aqi)
             self.title = str(aqi)
-            self.quality_item.title = f'Quality: {category}'
+            self.quality_item.title = f'Quality: {cat}'
+            self.pm2_5_item.title = f'PM2.5: {pm_2_5}'
+            self.pm10_item.title = f'PM10: {pm_10}'
+            self.ozone_item.title = f'Ozone: {ozone}'
 
     @staticmethod
-    async def get_air_quality() -> tuple[int, str]:
+    async def get_air_quality() -> tuple[list[int], str]:
         if not AIRNOW_API_KEY:
             raise RuntimeError(
                 'Missing AIRNOW_API_KEY in .env. '
@@ -126,7 +144,7 @@ class AirQualityApp(rumps.App):
                 'zipCode': ZIP_CODE,
                 'API_KEY': AIRNOW_API_KEY,
             },
-            timeout=15.0,
+            timeout=25.0,
         )
         response.raise_for_status()
 
@@ -135,14 +153,26 @@ class AirQualityApp(rumps.App):
                 'No air quality data available for this ZIP code.'
             )
 
-        record = data[0]
-        aqi = record.get('nowcastAQI', -1)
-        category = record.get('aqiCategoryName')
+        pollutants = [
+            data[0] if len(data) > 0 else {},  # PM2.5
+            data[1] if len(data) > 1 else {},  # PM10
+            data[2] if len(data) > 2 else {},  # Ozone
+        ]
+        aqi_values = [pollutant.get('nowcastAQI', -1) for pollutant in pollutants]
+
+        # find the most prevalent pollutant for AQI and category
+        max_index = max(range(len(aqi_values)), key=lambda i: aqi_values[i])
+        aqi = aqi_values[max_index]
+        category = pollutants[max_index].get('aqiCategoryName')
+        aqi_pm_2_5, aqi_pm_10, aqi_ozone = aqi_values
 
         if aqi == -1 or category is None:
             raise ValueError('AQI response did not include expected fields.')
 
-        return int(aqi), str(category)
+        return (
+            list(map(int, (aqi, aqi_pm_2_5, aqi_pm_10, aqi_ozone))),
+            str(category)
+        )
 
 
 if __name__ == '__main__':
